@@ -12,7 +12,7 @@
 			exclude-result-prefixes="gmd gmx gco gml srv geonet mcp xlink xsl">
 
 
-	<xsl:import href="../iso19139/index-fields.xsl"/>
+	<xsl:import href="../iso19139/index-fields/default.xsl"/>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->		
 	<xsl:template mode="index" match="mcp:dataParameters/mcp:DP_DataParameters/mcp:dataParameter">
