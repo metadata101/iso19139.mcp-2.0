@@ -9,7 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>schema-iso19139.mcp-2.0</artifactId>
+  <artifactId>schema-iso19139.mcp20</artifactId>
   <name>GeoNetwork schema plugin for ISO19139.mcp 2.0 standard</name>
 
   <dependencies>
@@ -24,6 +24,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>2.5</version>
         <executions>
           <execution>
             <id>test-jar</id>
