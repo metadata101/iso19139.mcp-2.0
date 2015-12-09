@@ -171,4 +171,84 @@
     </xsl:call-template>
   </xsl:template>
 
+  <!-- Rendering date type as a dropdown to select type
+  and the calendar next to it.
+  -->
+  <xsl:template mode="mode-iso19139" priority="2000" match="gmd:CI_Date/gmd:date[$schema='iso19139.mcp-2.0']">
+    <xsl:param name="schema" select="$schema" required="no"/>
+    <xsl:param name="labels" select="$labels" required="no"/>
+    <xsl:param name="codelists" select="$iso19139.mcp-2.0codelists" required="no"/>
+
+    <xsl:variable name="labelConfig"
+                  select="gn-fn-metadata:getLabel($schema, name(), $labels)"/>
+
+    <xsl:variable name="dateTypeElementRef"
+                  select="../gn:element/@ref"/>
+
+		<!-- check iso19139.mcp-2.0 first, then fall back to iso19139 -->
+		<xsl:variable name="listOfValues" as="node()">
+			<xsl:variable name="mcpList" as="node()" select="gn-fn-metadata:getCodeListValues($schema, 'gmd:CI_DateTypeCode', $codelists, .)"/>
+			<xsl:choose>
+				<xsl:when test="count($mcpList/*)=0"> <!-- do iso19139 -->
+					<xsl:copy-of select="gn-fn-metadata:getCodeListValues('iso19139', 'gmd:CI_DateTypeCode', $iso19139codelists, .)"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:copy-of select="$mcpList"/>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>				
+
+    <div class="form-group gn-field gn-title gn-required"
+         id="gn-el-{$dateTypeElementRef}"
+         data-gn-field-highlight="">
+      <label class="col-sm-2 control-label">
+        <xsl:value-of select="$labelConfig/label"/>
+      </label>
+      <div class="col-sm-3 gn-value">
+        <xsl:call-template name="render-codelist-as-select">
+          <xsl:with-param name="listOfValues" select="$listOfValues"/>
+          <xsl:with-param name="lang" select="$lang"/>
+          <xsl:with-param name="isDisabled" select="ancestor-or-self::node()[@xlink:href]"/>
+          <xsl:with-param name="elementRef" select="../gmd:dateType/gmd:CI_DateTypeCode/gn:element/@ref"/>
+          <xsl:with-param name="isRequired" select="true()"/>
+          <xsl:with-param name="hidden" select="false()"/>
+          <xsl:with-param name="valueToEdit" select="../gmd:dateType/gmd:CI_DateTypeCode/@codeListValue"/>
+          <xsl:with-param name="name" select="concat(../gmd:dateType/gmd:CI_DateTypeCode/gn:element/@ref, '_codeListValue')"/>
+        </xsl:call-template>
+
+
+        <xsl:call-template name="render-form-field-control-move">
+          <xsl:with-param name="elementEditInfo" select="../../gn:element"/>
+          <xsl:with-param name="domeElementToMoveRef" select="$dateTypeElementRef"/>
+        </xsl:call-template>
+      </div>
+      <div class="col-sm-6 gn-value">
+        <div data-gn-date-picker="{gco:Date|gco:DateTime}"
+             data-label=""
+             data-element-name="{name(gco:Date|gco:DateTime)}"
+             data-element-ref="{concat('_X', gn:element/@ref)}">
+        </div>
+
+
+        <!-- Create form for all existing attribute (not in gn namespace)
+         and all non existing attributes not already present. -->
+        <div class="well well-sm gn-attr {if ($isDisplayingAttributes) then '' else 'hidden'}">
+          <xsl:apply-templates mode="render-for-field-for-attribute"
+                               select="
+            ../../@*|
+            ../../gn:attribute[not(@name = parent::node()/@*/name())]">
+            <xsl:with-param name="ref" select="../../gn:element/@ref"/>
+            <xsl:with-param name="insertRef" select="../gn:element/@ref"/>
+          </xsl:apply-templates>
+        </div>
+      </div>
+      <div class="col-sm-1 gn-control">
+        <xsl:call-template name="render-form-field-control-remove">
+          <xsl:with-param name="editInfo" select="../gn:element"/>
+          <xsl:with-param name="parentEditInfo" select="../../gn:element"/>
+        </xsl:call-template>
+      </div>
+    </div>
+  </xsl:template>
+
 </xsl:stylesheet>
