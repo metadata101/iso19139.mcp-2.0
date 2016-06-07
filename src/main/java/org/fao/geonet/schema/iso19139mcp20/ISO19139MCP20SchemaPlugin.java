@@ -31,6 +31,8 @@ public class ISO19139MCP20SchemaPlugin
 
     private static ImmutableSet<Namespace> allNamespaces;
     private static Map<String, Namespace> allTypenames;
+		private static Map<String, String> allExportFormats;
+
     static {
         allNamespaces = ImmutableSet.<Namespace>builder()
                 .add(ISO19139MCP20Namespaces.GCO)
@@ -43,10 +45,13 @@ public class ISO19139MCP20SchemaPlugin
                 .put("csw:Record", Namespace.getNamespace("csw", "http://www.opengis.net/cat/csw/2.0.2"))
                 .put("mcp:MD_Metadata", ISO19139MCP20Namespaces.MCP)
                 .build();
+        allExportFormats = ImmutableMap.<String, String>builder()
+            .put("convert/to19139.xsl", "metadata-iso19139.xml")
+            .build();
     }
 
     public ISO19139MCP20SchemaPlugin() {
-        super(IDENTIFIER);
+        super(IDENTIFIER, allNamespaces);
     }
 
     /**
