@@ -30,14 +30,17 @@ import org.fao.geonet.kernel.schema.*;
 import org.fao.geonet.utils.Log;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Element;
+import org.jdom.JDOMException;
 import org.jdom.Namespace;
 import org.jdom.filter.ElementFilter;
 import org.jdom.xpath.XPath;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static org.fao.geonet.schema.iso19139.ISO19139Namespaces.GCO;
+import static org.fao.geonet.schema.iso19139.ISO19139Namespaces.GMD;
+import static org.fao.geonet.schema.iso19139.ISO19139Namespaces.GMX;
+import static org.fao.geonet.schema.iso19139.ISO19139Namespaces.SRV;
 
 /**
  * Created by francois on 6/15/14. Modified for iso19139.mcp-2.0 by sppigot
@@ -57,10 +60,10 @@ public class ISO19139MCP20SchemaPlugin
 
     static {
         allNamespaces = ImmutableSet.<Namespace>builder()
-            .add(ISO19139MCP20Namespaces.GCO)
-            .add(ISO19139MCP20Namespaces.GMD)
-            .add(ISO19139MCP20Namespaces.GMX)
-            .add(ISO19139MCP20Namespaces.SRV)
+            .add(GCO)
+            .add(GMD)
+            .add(GMX)
+            .add(SRV)
             .add(ISO19139MCP20Namespaces.MCP)
             .build();
         allTypenames = ImmutableMap.<String, Namespace>builder()
@@ -104,17 +107,17 @@ public class ISO19139MCP20SchemaPlugin
                 try {
                     if (o instanceof Element) {
                         Element sib = (Element) o;
-                        Element agId = (Element) sib.getChild("aggregateDataSetIdentifier", ISO19139MCP20Namespaces.GMD)
+                        Element agId = (Element) sib.getChild("aggregateDataSetIdentifier", GMD)
                             .getChildren().get(0);
-                        String sibUuid = getChild(agId, "code", ISO19139MCP20Namespaces.GMD)
-                            .getChildText("CharacterString", ISO19139MCP20Namespaces.GCO);
-                        final Element associationTypeEl = getChild(sib, "associationType", ISO19139MCP20Namespaces.GMD);
-                        String associationType = getChild(associationTypeEl, "DS_AssociationTypeCode", ISO19139MCP20Namespaces.GMD)
+                        String sibUuid = getChild(agId, "code", GMD)
+                            .getChildText("CharacterString", GCO);
+                        final Element associationTypeEl = getChild(sib, "associationType", GMD);
+                        String associationType = getChild(associationTypeEl, "DS_AssociationTypeCode", GMD)
                             .getAttributeValue("codeListValue");
-                        final Element initiativeTypeEl = getChild(sib, "initiativeType", ISO19139MCP20Namespaces.GMD);
+                        final Element initiativeTypeEl = getChild(sib, "initiativeType", GMD);
                         String initiativeType = "";
                         if (initiativeTypeEl != null) {
-                            initiativeType = getChild(initiativeTypeEl, "DS_InitiativeTypeCode", ISO19139MCP20Namespaces.GMD)
+                            initiativeType = getChild(initiativeTypeEl, "DS_InitiativeTypeCode", GMD)
                                 .getAttributeValue("codeListValue");
                         }
                         AssociatedResource resource = new AssociatedResource(sibUuid, initiativeType, associationType);
@@ -140,24 +143,24 @@ public class ISO19139MCP20SchemaPlugin
 
     @Override
     public Set<String> getAssociatedParentUUIDs(Element metadata) {
-        ElementFilter elementFilter = new ElementFilter("parentIdentifier", ISO19139MCP20Namespaces.GMD);
+        ElementFilter elementFilter = new ElementFilter("parentIdentifier", GMD);
         return Xml.filterElementValues(
             metadata,
             elementFilter,
-            "CharacterString", ISO19139MCP20Namespaces.GCO,
+            "CharacterString", GCO,
             null);
     }
 
     public Set<String> getAssociatedDatasetUUIDs(Element metadata) {
-        return getAttributeUuidrefValues(metadata, "operatesOn", ISO19139MCP20Namespaces.SRV);
+        return getAttributeUuidrefValues(metadata, "operatesOn", SRV);
     }
 
     public Set<String> getAssociatedFeatureCatalogueUUIDs(Element metadata) {
-        return getAttributeUuidrefValues(metadata, "featureCatalogueCitation", ISO19139MCP20Namespaces.GMD);
+        return getAttributeUuidrefValues(metadata, "featureCatalogueCitation", GMD);
     }
 
     public Set<String> getAssociatedSourceUUIDs(Element metadata) {
-        return getAttributeUuidrefValues(metadata, "source", ISO19139MCP20Namespaces.GMD);
+        return getAttributeUuidrefValues(metadata, "source", GMD);
     }
 
     private Set<String> getAttributeUuidrefValues(Element metadata, String tagName, Namespace namespace) {
@@ -208,19 +211,45 @@ public class ISO19139MCP20SchemaPlugin
             Namespace.getNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance"));
 
         // Create a new translation for the language
-        Element langElem = new Element("LocalisedCharacterString", ISO19139MCP20Namespaces.GMD);
+        Element langElem = new Element("LocalisedCharacterString", GMD);
         langElem.setAttribute("locale", "#" + languageIdentifier);
         langElem.setText(value);
-        Element textGroupElement = new Element("textGroup", ISO19139MCP20Namespaces.GMD);
+        Element textGroupElement = new Element("textGroup", GMD);
         textGroupElement.addContent(langElem);
 
         // Get the PT_FreeText node where to insert the translation into
-        Element freeTextElement = element.getChild("PT_FreeText", ISO19139MCP20Namespaces.GMD);
+        Element freeTextElement = element.getChild("PT_FreeText", GMD);
         if (freeTextElement == null) {
-            freeTextElement = new Element("PT_FreeText", ISO19139MCP20Namespaces.GMD);
+            freeTextElement = new Element("PT_FreeText", GMD);
             element.addContent(freeTextElement);
         }
         freeTextElement.addContent(textGroupElement);
+    }
+
+    /**
+     * Remove all multingual aspect of an element. Keep the md language localized strings
+     * as default gco:CharacterString for the element.
+     *
+     * @param element
+     * @param mdLang Metadata lang encoded as #EN
+     * @return
+     * @throws JDOMException
+     */
+    @Override
+    public Element removeTranslationFromElement(Element element, String mdLang) throws JDOMException {
+
+        List<Element> multilangElement = (List<Element>)Xml.selectNodes(element, "*//gmd:PT_FreeText", Arrays.asList(GMD));
+
+        for(Element el : multilangElement) {
+            String filterAttribute = "*//node()[@locale='" + mdLang + "']";
+            List<Element> localizedElement = (List<Element>)Xml.selectNodes(el, filterAttribute, Arrays.asList(GMD));
+            if(localizedElement.size() == 1) {
+                String mainLangStraing = localizedElement.get(0).getText();
+                ((Element)el.getParent()).getChild("CharacterString", GCO).setText(mainLangStraing);
+            }
+            el.detach();
+        }
+        return element;
     }
 
     @Override
@@ -230,7 +259,7 @@ public class ISO19139MCP20SchemaPlugin
 
     @Override
     public Element createBasicTypeCharacterString() {
-        return new Element("CharacterString", ISO19139MCP20Namespaces.GCO);
+        return new Element("CharacterString", GCO);
     }
 
     @Override
