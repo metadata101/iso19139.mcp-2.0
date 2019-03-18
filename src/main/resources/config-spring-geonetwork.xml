@@ -5,5 +5,5 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
   <bean id="iso19139MCP20SchemaPlugin"
-        class="org.fao.geonet.schema.iso19139mcp20.ISO19139MCP20SchemaPlugin"/>
+        class="org.fao.geonet.schema.iso19139.ISO19139SchemaPlugin"/>
 </beans>
