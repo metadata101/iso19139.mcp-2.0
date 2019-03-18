@@ -3,6 +3,7 @@
 	<name>iso19139.mcp-2.0</name>
 	<id>d22ad9e7-f969-4dab-a946-43811a2d4d87</id>
 	<version>2.0</version>
+	<appMinorVersionSupported>3.4.0</appMinorVersionSupported>
 	<depends>iso19139</depends>
 	<schemaLocation>http://schemas.aodn.org.au/mcp-2.0 http://schemas.aodn.org.au/mcp-2.0/schema.xsd http://www.isotc211.org/2005/srv http://schemas.opengis.net/iso/19139/20060504/srv/srv.xsd http://www.isotc211.org/2005/gmx http://www.isotc211.org/2005/gmx/gmx.xsd http://rs.tdwg.org/dwc/terms/ http://schemas.aodn.org.au/mcp-2.0/mcpDwcTerms.xsd</schemaLocation>
 	<autodetect xmlns:mcp="http://schemas.aodn.org.au/mcp-2.0" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gco="http://www.isotc211.org/2005/gco">
